@@ -1,10 +1,12 @@
+// app/login/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import React from "react";
-// --- Added Lucide Icons for Visual Spice ---
 import { User, Lock, LogIn, Loader2, Zap, Sun, Moon, Aperture } from 'lucide-react'; 
+// *** 1. Import the global useTheme hook ***
+import { useTheme } from '@/context/ThemeContext'; // Ensure this path is correct
 
 // --- Utility Function: Save Tokens (Unchanged) ---
 export const saveTokens = (accessToken: string, refreshToken: string) => {
@@ -21,13 +23,14 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false); 
-  // --- NEW STATE: Theme Toggle ---
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark'); 
+  
+  // *** 2. Use Global Theme State instead of local useState ***
+  const { isLight, toggleTheme } = useTheme(); 
 
   const router = useRouter();
 
   // --- 2. Dynamic Sci-Fi Theme Configuration ---
-  const isLight = theme === 'light';
+  // isLight is now sourced directly from the global context
   
   // Dynamic Background and Text Colors
   const bgColor = isLight ? "bg-gray-100" : "bg-gray-950";
@@ -47,7 +50,7 @@ export default function LoginPage() {
   const formShadow = isLight ? '0 10px 30px rgba(0, 0, 0, 0.1)' : '0 0 40px rgba(17, 247, 182, 0.2)'; 
   const formBorder = isLight ? "border-gray-200" : "border-gray-700";
 
-  // --- 3. Effects and Theme Toggle ---
+  // --- 3. Effects ---
   // Entrance Transition Effect
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -56,10 +59,7 @@ export default function LoginPage() {
     return () => clearTimeout(timeout);
   }, []);
 
-  // Theme Toggle Handler
-  const toggleTheme = () => {
-      setTheme(isLight ? 'dark' : 'light');
-  };
+  // *** The local toggleTheme function is now replaced by the one from useTheme() ***
 
   // --- 4. Authentication Handler (Unchanged) ---
   const handleLogin = async (e: React.FormEvent) => {
@@ -105,7 +105,6 @@ export default function LoginPage() {
 
       // SUCCESSFUL LOGIN: SAVE TOKENS AND REDIRECT DIRECTLY
       if (data.accessToken && data.refreshToken) {
-        // Log the successful login and username to the console
         console.log("Access Granted. Successfully logged in as:", username);
         
         saveTokens(data.accessToken, data.refreshToken);
@@ -179,6 +178,7 @@ export default function LoginPage() {
               
               {/* --- Theme Toggle Button --- */}
               <button
+                // Calls the global toggleTheme function
                 onClick={toggleTheme}
                 className={`z-30 p-2 rounded-full transition-all duration-300 ${
                   isLight 
@@ -196,7 +196,6 @@ export default function LoginPage() {
       <main className="flex justify-center w-full min-h-[calc(100vh-80px)] p-8">
           {/* The Login Form */}
           <form
-            // 4. ***RESIZED HERE: max-w-sm to max-w-md, p-8 to p-10***
             className={`z-10 w-full max-w-md p-10 rounded-2xl shadow-2xl ${formBg} ${textColor} ${formBorder} border
               transition-all duration-700 ease-out h-fit`} 
             onSubmit={handleLogin}
